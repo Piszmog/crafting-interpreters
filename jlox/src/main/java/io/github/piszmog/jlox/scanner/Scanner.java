@@ -1,7 +1,6 @@
 package io.github.piszmog.jlox.scanner;
 
 import io.github.piszmog.jlox.error.Lox;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
