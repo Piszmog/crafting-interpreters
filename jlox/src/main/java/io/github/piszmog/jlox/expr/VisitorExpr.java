@@ -1,6 +1,6 @@
 package io.github.piszmog.jlox.expr;
 
-public interface Visitor<T> {
+public interface VisitorExpr<T> {
     T visitBinaryExpr(final Binary expr);
 
     T visitGroupingExpr(final Grouping expr);

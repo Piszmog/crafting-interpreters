@@ -1,6 +1,6 @@
 package io.github.piszmog.jlox.expr;
 
-public class AstPrinter implements Visitor<String> {
+public class AstPrinter implements VisitorExpr<String> {
     public String print(final Expr expr) {
         return expr.accept(this);
     }

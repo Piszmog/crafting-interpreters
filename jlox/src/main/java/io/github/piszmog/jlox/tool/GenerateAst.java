@@ -22,14 +22,23 @@ public class GenerateAst {
                         "Unary    : Token operator, Expr right"
                 )
         );
+        defineAst(
+                args[0],
+                "Stmt",
+                Arrays.asList(
+                        "Expression : Expr expression",
+                        "Print      : Expr expression"
+                )
+        );
     }
 
     private static void defineAst(final String outputDir, final String baseName, final List<String> types) throws IOException {
-        writeVisitorInterface(outputDir, baseName, "Visitor", types);
-        writeBaseClass(outputDir, baseName);
+        final String visitorName = "Visitor" + baseName;
+        writeVisitorInterface(outputDir, baseName, visitorName, types);
+        writeBaseClass(outputDir, baseName, visitorName);
 
         for (String type : types) {
-            writeClass(outputDir, baseName, type);
+            writeClass(outputDir, baseName, visitorName, type);
         }
     }
 
@@ -53,19 +62,19 @@ public class GenerateAst {
         writer.close();
     }
 
-    private static void writeBaseClass(final String outputDir, final String name) throws IOException {
+    private static void writeBaseClass(final String outputDir, final String name, final String visitorName) throws IOException {
         final String path = getPath(outputDir, name);
         final PrintWriter writer = new PrintWriter(path, StandardCharsets.UTF_8);
 
         writer.println("package io.github.piszmog.jlox.expr;");
         writer.println();
         writer.printf("public interface %s {\n", name);
-        writer.println("    <T> T accept(final Visitor<T> visitor);");
+        writer.printf("    <T> T accept(final %s<T> visitor);\n", visitorName);
         writer.println("}");
         writer.close();
     }
 
-    private static void writeClass(final String outputDir, final String baseClass, final String type) throws IOException {
+    private static void writeClass(final String outputDir, final String baseClass, final String visitorName, final String type) throws IOException {
         String name = type.split(":")[0].trim();
         String fields = type.split(":")[1].trim();
 
@@ -80,7 +89,7 @@ public class GenerateAst {
         }
         writer.printf("public record %s(%s) implements %s {\n", name, fields, baseClass);
         writer.println("    @Override");
-        writer.println("    public <T> T accept(final Visitor<T> visitor) {");
+        writer.printf("    public <T> T accept(final %s<T> visitor) {\n", visitorName);
         writer.printf("        return visitor.visit%s%s(this);\n", name, baseClass);
         writer.println("    }");
         writer.println("}");

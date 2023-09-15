@@ -4,14 +4,21 @@ import io.github.piszmog.jlox.error.Lox;
 import io.github.piszmog.jlox.expr.*;
 import io.github.piszmog.jlox.scanner.Token;
 
-public class Interpreter implements Visitor<Object> {
-    public void interpret(final Expr expr) {
+import java.util.List;
+
+public class Interpreter implements VisitorExpr<Object>, VisitorStmt<Void> {
+    public void interpret(final List<Stmt> statements) {
         try {
-            final Object val = evaluate(expr);
-            System.out.println(stringify(val));
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
         } catch (RuntimeError e) {
             Lox.runtimeError(e);
         }
+    }
+
+    private void execute(final Stmt statement) {
+        statement.accept(this);
     }
 
     @Override
@@ -109,6 +116,19 @@ public class Interpreter implements Visitor<Object> {
                 return !isTruthy(right);
             }
         }
+        return null;
+    }
+
+    @Override
+    public Void visitExpressionStmt(Expression stmt) {
+        evaluate(stmt.expression());
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStmt(Print stmt) {
+        final Object val = evaluate(stmt.expression());
+        System.out.println(stringify(val));
         return null;
     }
 

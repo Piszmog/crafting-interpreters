@@ -6,6 +6,7 @@ import io.github.piszmog.jlox.scanner.Token;
 import io.github.piszmog.jlox.scanner.TokenType;
 import lombok.RequiredArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -13,12 +14,35 @@ public class Parser {
     private final List<Token> tokens;
     private int current = 0;
 
-    public Expr parse() {
-        try {
-            return expression();
-        } catch (ParserError e) {
-            return null;
+    public List<Stmt> parse() {
+        final ArrayList<Stmt> statements = new ArrayList<>();
+        while (!isAtEnd()) {
+            try {
+                statements.add(statement());
+            } catch (ParserError e) {
+                return null;
+            }
         }
+        return statements;
+    }
+
+    private Stmt statement() throws ParserError {
+        if(match(TokenType.PRINT)) {
+            return printStatement();
+        }
+        return expressionStatement();
+    }
+
+    private Stmt printStatement() throws ParserError {
+        final Expr value = expression();
+        consume(TokenType.SEMICOLON, "Expect ';' after value.");
+        return new Print(value);
+    }
+
+    private Stmt expressionStatement() throws ParserError {
+        final Expr value = expression();
+        consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+        return new Expression(value);
     }
 
     private Expr expression() throws ParserError {

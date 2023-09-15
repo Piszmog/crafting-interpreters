@@ -2,7 +2,7 @@ package io.github.piszmog.jlox;
 
 import io.github.piszmog.jlox.Interpreter.Interpreter;
 import io.github.piszmog.jlox.error.Lox;
-import io.github.piszmog.jlox.expr.Expr;
+import io.github.piszmog.jlox.expr.Stmt;
 import io.github.piszmog.jlox.parser.Parser;
 import io.github.piszmog.jlox.scanner.Scanner;
 import io.github.piszmog.jlox.scanner.Token;
@@ -16,7 +16,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class Main {
-    private static Interpreter interpreter = new Interpreter();
+    private static final Interpreter interpreter = new Interpreter();
 
     public static void main(final String[] args) throws IOException {
         if (args.length > 1) {
@@ -59,7 +59,7 @@ public class Main {
         final Scanner scanner = new Scanner(source);
         final List<Token> tokens = scanner.scanTokens();
         final Parser parser = new Parser(tokens);
-        final Expr expr = parser.parse();
+        final List<Stmt> expr = parser.parse();
         if (Lox.isHadError()) {
             return;
         }
