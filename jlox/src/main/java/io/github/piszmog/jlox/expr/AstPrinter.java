@@ -17,7 +17,7 @@ public class AstPrinter implements Visitor<String> {
 
     @Override
     public String visitLiteralExpr(Literal expr) {
-        if(expr.value() == null) {
+        if (expr.value() == null) {
             return "nil";
         }
         return expr.value().toString();
