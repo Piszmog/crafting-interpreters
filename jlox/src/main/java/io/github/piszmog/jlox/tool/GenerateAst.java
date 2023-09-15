@@ -28,6 +28,7 @@ public class GenerateAst {
                 args[0],
                 "Stmt",
                 Arrays.asList(
+                        "Block      : List<Stmt> statements",
                         "Expression : Expr expression",
                         "Print      : Expr expression",
                         "Var        : Token name, Expr initializer"
@@ -88,6 +89,10 @@ public class GenerateAst {
         writer.println();
         if (fields.contains("Token")) {
             writer.println("import io.github.piszmog.jlox.scanner.Token;");
+            writer.println();
+        }
+        if (fields.contains("List")) {
+            writer.println("import java.util.List;");
             writer.println();
         }
         writer.printf("public record %s(%s) implements %s {\n", name, fields, baseClass);

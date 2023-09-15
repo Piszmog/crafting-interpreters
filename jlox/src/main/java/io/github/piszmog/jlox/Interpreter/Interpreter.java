@@ -8,7 +8,7 @@ import io.github.piszmog.jlox.scanner.Token;
 import java.util.List;
 
 public class Interpreter implements VisitorExpr<Object>, VisitorStmt<Void> {
-    private final Environment environment = new Environment();
+    private Environment environment = new Environment();
 
     public void interpret(final List<Stmt> statements) {
         try {
@@ -132,6 +132,24 @@ public class Interpreter implements VisitorExpr<Object>, VisitorStmt<Void> {
     @Override
     public Object visitVariableExpr(Variable expr) {
         return environment.get(expr.name());
+    }
+
+    @Override
+    public Void visitBlockStmt(Block stmt) {
+        executeBlock(stmt.statements(), new Environment(environment));
+        return null;
+    }
+
+    private void executeBlock(final List<Stmt> statements, final Environment environment) {
+        final Environment prev = this.environment;
+        try {
+            this.environment = environment;
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
+        } finally {
+            this.environment = prev;
+        }
     }
 
     @Override
