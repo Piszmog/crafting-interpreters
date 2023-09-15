@@ -1,7 +1,7 @@
 package io.github.piszmog.jlox;
 
+import io.github.piszmog.jlox.Interpreter.Interpreter;
 import io.github.piszmog.jlox.error.Lox;
-import io.github.piszmog.jlox.expr.AstPrinter;
 import io.github.piszmog.jlox.expr.Expr;
 import io.github.piszmog.jlox.parser.Parser;
 import io.github.piszmog.jlox.scanner.Scanner;
@@ -16,6 +16,8 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class Main {
+    private static Interpreter interpreter = new Interpreter();
+
     public static void main(final String[] args) throws IOException {
         if (args.length > 1) {
             System.out.println("Usage: jlox [script]");
@@ -30,8 +32,11 @@ public class Main {
     private static void runFile(final String path) throws IOException {
         final byte[] bytes = Files.readAllBytes(Paths.get(path));
         run(new String(bytes, Charset.defaultCharset()));
-        if (Lox.hadError) {
+        if (Lox.isHadError()) {
             System.exit(65);
+        }
+        if (Lox.isHadRuntimeError()) {
+            System.exit(70);
         }
     }
 
@@ -46,7 +51,7 @@ public class Main {
                 break;
             }
             run(line);
-            Lox.hadError = false;
+            Lox.setHadError(false);
         }
     }
 
@@ -55,9 +60,9 @@ public class Main {
         final List<Token> tokens = scanner.scanTokens();
         final Parser parser = new Parser(tokens);
         final Expr expr = parser.parse();
-        if (Lox.hadError) {
+        if (Lox.isHadError()) {
             return;
         }
-        System.out.println(new AstPrinter().print(expr));
+        interpreter.interpret(expr);
     }
 }
