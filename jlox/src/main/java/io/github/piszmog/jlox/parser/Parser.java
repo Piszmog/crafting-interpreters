@@ -17,17 +17,35 @@ public class Parser {
     public List<Stmt> parse() {
         final ArrayList<Stmt> statements = new ArrayList<>();
         while (!isAtEnd()) {
-            try {
-                statements.add(statement());
-            } catch (ParserError e) {
-                return null;
-            }
+            statements.add(declaration());
         }
         return statements;
     }
 
+    private Stmt declaration() {
+        try {
+            if (match(TokenType.VAR)) {
+                return varDeclaration();
+            }
+            return statement();
+        } catch (ParserError e) {
+            synchronize();
+            return null;
+        }
+    }
+
+    private Stmt varDeclaration() throws ParserError {
+        final Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
+        Expr initializer = null;
+        if (match(TokenType.EQUAL)) {
+            initializer = expression();
+        }
+        consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+        return new Var(name, initializer);
+    }
+
     private Stmt statement() throws ParserError {
-        if(match(TokenType.PRINT)) {
+        if (match(TokenType.PRINT)) {
             return printStatement();
         }
         return expressionStatement();
@@ -46,8 +64,22 @@ public class Parser {
     }
 
     private Expr expression() throws ParserError {
-        // expression → equality ;
-        return equality();
+        // expression → assignment ;
+        return assignment();
+    }
+
+    private Expr assignment() throws ParserError {
+        // assignment → IDENTIFIER "=" assignment | equality ;
+        final Expr expr = equality();
+        if (match(TokenType.EQUAL)) {
+            final Token equals = previous();
+            final Expr val = assignment();
+            if (expr instanceof Variable) {
+                return new Assign(((Variable) expr).name(), val);
+            }
+            error(equals, "Invalid assignment target.");
+        }
+        return expr;
     }
 
     private Expr equality() throws ParserError {
@@ -117,6 +149,8 @@ public class Parser {
         } else if (match(TokenType.LEFT_PAREN)) {
             consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
             return new Grouping(expression());
+        } else if (match(TokenType.IDENTIFIER)) {
+            return new Variable(previous());
         }
         throw error(peek(), "Expected expression.");
     }

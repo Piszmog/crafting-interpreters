@@ -1,5 +1,6 @@
 package io.github.piszmog.jlox.Interpreter;
 
+import io.github.piszmog.jlox.environment.Environment;
 import io.github.piszmog.jlox.error.Lox;
 import io.github.piszmog.jlox.expr.*;
 import io.github.piszmog.jlox.scanner.Token;
@@ -7,6 +8,8 @@ import io.github.piszmog.jlox.scanner.Token;
 import java.util.List;
 
 public class Interpreter implements VisitorExpr<Object>, VisitorStmt<Void> {
+    private final Environment environment = new Environment();
+
     public void interpret(final List<Stmt> statements) {
         try {
             for (Stmt statement : statements) {
@@ -19,6 +22,13 @@ public class Interpreter implements VisitorExpr<Object>, VisitorStmt<Void> {
 
     private void execute(final Stmt statement) {
         statement.accept(this);
+    }
+
+    @Override
+    public Object visitAssignExpr(final Assign expr) {
+        final Object val = evaluate(expr.value());
+        environment.assign(expr.name(), val);
+        return null;
     }
 
     @Override
@@ -120,6 +130,11 @@ public class Interpreter implements VisitorExpr<Object>, VisitorStmt<Void> {
     }
 
     @Override
+    public Object visitVariableExpr(Variable expr) {
+        return environment.get(expr.name());
+    }
+
+    @Override
     public Void visitExpressionStmt(Expression stmt) {
         evaluate(stmt.expression());
         return null;
@@ -129,6 +144,16 @@ public class Interpreter implements VisitorExpr<Object>, VisitorStmt<Void> {
     public Void visitPrintStmt(Print stmt) {
         final Object val = evaluate(stmt.expression());
         System.out.println(stringify(val));
+        return null;
+    }
+
+    @Override
+    public Void visitVarStmt(Var stmt) {
+        Object val = null;
+        if (stmt.initializer() != null) {
+            val = evaluate(stmt.initializer());
+        }
+        environment.define(stmt.name().lexeme(), val);
         return null;
     }
 
